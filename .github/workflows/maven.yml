@@ -30,14 +30,13 @@ jobs:
     - name: Build with Maven
       run: mvn -B package -DskipTests --file pom.xml
     
-    # 添加调试步骤，列出target目录内容
+    # 添加调试步骤
     - name: List target directory
       run: ls -la target/
       
-    # 上传构建产物 - 使用v2版本替代v3
+    # 使用main分支版本
     - name: Upload JAR
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@main
       with:
         name: app
         path: target/*.jar
-        retention-days: 5
