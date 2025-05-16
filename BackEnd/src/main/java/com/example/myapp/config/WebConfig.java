@@ -27,6 +27,7 @@ public class WebConfig implements WebMvcConfigurer {
                                                 // Railway云端环境 - 根据实际域名修改
                                                 "https://eventgraphtotext-frontend.up.railway.app",
                                                 "https://eventgraphtotext-frontend.railway.app",
+                                                "https://eventgraphtotext-frontend-production.up.railway.app",
                                                 // 添加"*"可以允许所有域名访问，但在生产环境中可能不够安全
                                                 "*")
                                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
