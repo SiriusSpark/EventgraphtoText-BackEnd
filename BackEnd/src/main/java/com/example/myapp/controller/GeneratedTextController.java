@@ -21,6 +21,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
@@ -174,6 +175,8 @@ public class GeneratedTextController {
             // 添加更明确的Content-Disposition设置
             headers.add(HttpHeaders.CONTENT_DISPOSITION,
                     "attachment; filename=\"" + encodedFileName + "\"; filename*=UTF-8''" + encodedFileName);
+            // 允许浏览器访问响应头
+            headers.add("Access-Control-Expose-Headers", "Content-Disposition");
 
             return new ResponseEntity<>(outputStream.toByteArray(), headers, HttpStatus.OK);
         } catch (RuntimeException e) {
@@ -209,7 +212,18 @@ public class GeneratedTextController {
             String zipFileName = String.format("%s_%s.zip", eventGraphTitle, formattedDate);
 
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            generatedTextService.exportTextsByEventGraphId(eventGraphId, outputStream);
+
+            // 创建日志记录，帮助调试
+            System.out.println("开始导出事件图文本, 事件图ID: " + eventGraphId);
+
+            try {
+                generatedTextService.exportTextsByEventGraphId(eventGraphId, outputStream);
+                System.out.println("事件图文本导出完成, 事件图ID: " + eventGraphId);
+            } catch (Exception e) {
+                System.err.println("导出事件图文本过程中出错: " + e.getMessage());
+                e.printStackTrace();
+                // 继续执行，尝试发送已经生成的部分内容
+            }
 
             // 对文件名进行URL编码，解决中文乱码问题
             String encodedFileName = URLEncoder.encode(zipFileName, StandardCharsets.UTF_8.toString())
@@ -220,11 +234,31 @@ public class GeneratedTextController {
             // 添加更明确的Content-Disposition设置
             headers.add(HttpHeaders.CONTENT_DISPOSITION,
                     "attachment; filename=\"" + encodedFileName + "\"; filename*=UTF-8''" + encodedFileName);
+            // 允许浏览器访问响应头
+            headers.add("Access-Control-Expose-Headers", "Content-Disposition");
 
+            // 确保无论如何都返回200状态码，让前端能正常处理
             return new ResponseEntity<>(outputStream.toByteArray(), headers, HttpStatus.OK);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(("导出失败: " + e.getMessage()).getBytes());
+            System.err.println("导出事件图文本失败, 错误: " + e.getMessage());
+            e.printStackTrace();
+
+            // 尝试发送错误信息作为文本文件
+            try {
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(MediaType.TEXT_PLAIN);
+                headers.add(HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=\"error_log.txt\"");
+
+                ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+                outputStream.write(("导出失败: " + e.getMessage() + "\n\n请稍后再试或联系管理员。").getBytes(StandardCharsets.UTF_8));
+
+                return new ResponseEntity<>(outputStream.toByteArray(), headers, HttpStatus.OK);
+            } catch (IOException ioException) {
+                // 如果连错误信息也无法发送，则返回500状态码
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(("导出失败: " + e.getMessage()).getBytes());
+            }
         }
     }
 
@@ -245,6 +279,7 @@ public class GeneratedTextController {
                 }
             } catch (Exception e) {
                 // 如果获取用户名失败，使用默认名称
+                System.err.println("获取用户信息失败: " + e.getMessage());
             }
 
             // 处理用户名中可能含有的非法字符
@@ -257,8 +292,18 @@ public class GeneratedTextController {
             // 构建文件名: 用户名称_全部文本_导出时间
             String zipFileName = String.format("%s_全部文本_%s.zip", userName, formattedDate);
 
+            // 创建日志记录，帮助调试
+            System.out.println("开始导出用户所有文本, 用户ID: " + userId);
+
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            generatedTextService.exportAllTextsByUserId(userId, outputStream);
+            try {
+                generatedTextService.exportAllTextsByUserId(userId, outputStream);
+                System.out.println("用户文本导出完成, 用户ID: " + userId);
+            } catch (Exception e) {
+                System.err.println("导出用户文本过程中出错: " + e.getMessage());
+                e.printStackTrace();
+                // 继续执行，尝试发送已经生成的部分内容
+            }
 
             // 对文件名进行URL编码，解决中文乱码问题
             String encodedFileName = URLEncoder.encode(zipFileName, StandardCharsets.UTF_8.toString())
@@ -269,11 +314,31 @@ public class GeneratedTextController {
             // 添加更明确的Content-Disposition设置
             headers.add(HttpHeaders.CONTENT_DISPOSITION,
                     "attachment; filename=\"" + encodedFileName + "\"; filename*=UTF-8''" + encodedFileName);
+            // 允许浏览器访问响应头
+            headers.add("Access-Control-Expose-Headers", "Content-Disposition");
 
+            // 确保无论如何都返回200状态码，让前端能正常处理
             return new ResponseEntity<>(outputStream.toByteArray(), headers, HttpStatus.OK);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(("导出失败: " + e.getMessage()).getBytes());
+            System.err.println("导出用户文本失败, 错误: " + e.getMessage());
+            e.printStackTrace();
+
+            // 尝试发送错误信息作为文本文件
+            try {
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(MediaType.TEXT_PLAIN);
+                headers.add(HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=\"error_log.txt\"");
+
+                ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+                outputStream.write(("导出失败: " + e.getMessage() + "\n\n请稍后再试或联系管理员。").getBytes(StandardCharsets.UTF_8));
+
+                return new ResponseEntity<>(outputStream.toByteArray(), headers, HttpStatus.OK);
+            } catch (IOException ioException) {
+                // 如果连错误信息也无法发送，则返回500状态码
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(("导出失败: " + e.getMessage()).getBytes());
+            }
         }
     }
 

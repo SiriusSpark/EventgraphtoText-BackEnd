@@ -23,7 +23,9 @@ public class WebConfig implements WebMvcConfigurer {
                                                 "http://127.0.0.1:3000")
                                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                                 .allowedHeaders("*")
-                                .allowCredentials(true);
+                                .exposedHeaders("Content-Disposition", "Content-Type", "Content-Length")
+                                .allowCredentials(true)
+                                .maxAge(3600); // 1小时预检请求缓存
         }
 
         @Override

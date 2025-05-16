@@ -6,15 +6,16 @@ server:
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/eventgraph_to_text?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useSSL=false
-    username: root
-    password: 12345678
-  
+    url: ${MYSQL_URL}
+    username: ${MYSQL_USERNAME}
+    password: ${MYSQL_PASSWORD}
+
   neo4j:
-    uri: bolt://localhost:7687
+    uri: ${NEO4J_URI}
     authentication:
-      username: neo4j
-      password: 12345678
+      username: ${NEO4J_USERNAME}
+      password: ${NEO4J_PASSWORD}
+
   
   mvc:
     static-path-pattern: /**

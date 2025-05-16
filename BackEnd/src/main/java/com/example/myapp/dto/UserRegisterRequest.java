@@ -11,4 +11,4 @@ public class UserRegisterRequest {
     private String email;
     @JsonProperty("avatar_url")
     private String avatarUrl;
-} 
+}

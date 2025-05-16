@@ -194,40 +194,81 @@ public class GeneratedTextServiceImpl implements GeneratedTextService {
     }
 
     private void exportTextsToZip(List<GeneratedText> texts, OutputStream outputStream) {
-        try (ZipOutputStream zipOut = new ZipOutputStream(outputStream)) {
+        // 检查是否有文本可以导出
+        if (texts == null || texts.isEmpty()) {
+            try {
+                ZipOutputStream zipOut = new ZipOutputStream(outputStream);
+                // 添加一个空的提示文件
+                ZipEntry zipEntry = new ZipEntry("没有找到可导出的文本.txt");
+                zipOut.putNextEntry(zipEntry);
+                byte[] contentBytes = "暂无文本可导出。请先生成文本再尝试导出操作。".getBytes(StandardCharsets.UTF_8);
+                zipOut.write(contentBytes, 0, contentBytes.length);
+                zipOut.closeEntry();
+                zipOut.finish();
+                zipOut.flush();
+                zipOut.close(); // 确保关闭
+                return;
+            } catch (IOException e) {
+                throw new RuntimeException("创建空ZIP文件失败: " + e.getMessage(), e);
+            }
+        }
+
+        ZipOutputStream zipOut = null;
+        try {
+            zipOut = new ZipOutputStream(outputStream);
             for (GeneratedText text : texts) {
                 // 获取事件图标题
-                EventGraphDataDTO eventGraphData = eventGraphService.getEventGraphData(text.getEventGraphId());
-                String eventGraphTitle = (eventGraphData != null) ? eventGraphData.getTitle() : "未知事件图";
+                EventGraphDataDTO eventGraphData = null;
+                String eventGraphTitle = "未知事件图";
+                try {
+                    eventGraphData = eventGraphService.getEventGraphData(text.getEventGraphId());
+                    if (eventGraphData != null) {
+                        eventGraphTitle = eventGraphData.getTitle();
+                    }
+                } catch (Exception e) {
+                    // 如果获取事件图失败，使用默认标题并继续处理
+                    System.err.println("获取事件图详情失败，ID: " + text.getEventGraphId() + ", 错误: " + e.getMessage());
+                }
 
                 // 获取风格名称（如果有的话）
                 String styleName = "";
                 if (text.getStyleId() != null) {
                     try {
                         TextStyle style = textStyleService.getStyleById(text.getStyleId());
-                        styleName = style.getName();
+                        if (style != null) {
+                            styleName = style.getName();
+                        }
                     } catch (Exception e) {
-                        // 如果无法获取风格，就忽略
+                        // 如果无法获取风格，就忽略并继续处理
+                        System.err.println("获取风格详情失败，ID: " + text.getStyleId() + ", 错误: " + e.getMessage());
                     }
                 }
 
-                // 构建文件名
-                String fileName;
+                // 构建文件名，为相同名称的文件添加序号避免冲突
+                String baseFileName;
                 if (!styleName.isEmpty()) {
-                    fileName = String.format("%s_%s.txt", eventGraphTitle, styleName);
+                    baseFileName = String.format("%s_%s", eventGraphTitle, styleName);
                 } else {
-                    fileName = String.format("%s.txt", eventGraphTitle);
+                    baseFileName = eventGraphTitle;
                 }
 
                 // 处理文件名中可能含有的非法字符
-                fileName = fileName.replaceAll("[\\\\/:*?\"<>|]", "_");
+                baseFileName = baseFileName.replaceAll("[\\\\/:*?\"<>|]", "_");
+
+                // 添加文本ID防止重名
+                String fileName = String.format("%s_文本ID%d.txt", baseFileName, text.getId());
 
                 ZipEntry zipEntry = new ZipEntry(fileName);
                 zipOut.putNextEntry(zipEntry);
 
-                byte[] contentBytes = text.getContent().getBytes(StandardCharsets.UTF_8);
-                zipOut.write(contentBytes, 0, contentBytes.length);
+                // 确保内容非空
+                String content = text.getContent();
+                if (content == null) {
+                    content = "(空内容)";
+                }
 
+                byte[] contentBytes = content.getBytes(StandardCharsets.UTF_8);
+                zipOut.write(contentBytes, 0, contentBytes.length);
                 zipOut.closeEntry();
             }
 
@@ -235,6 +276,16 @@ public class GeneratedTextServiceImpl implements GeneratedTextService {
             zipOut.flush();
         } catch (IOException e) {
             throw new RuntimeException("导出文本到ZIP失败: " + e.getMessage(), e);
+        } finally {
+            // 确保ZipOutputStream被关闭，但不关闭外部传入的OutputStream
+            if (zipOut != null) {
+                try {
+                    zipOut.close();
+                } catch (IOException e) {
+                    System.err.println("关闭ZipOutputStream失败: " + e.getMessage());
+                    // 不抛出异常，以免覆盖主要的异常
+                }
+            }
         }
     }
 }

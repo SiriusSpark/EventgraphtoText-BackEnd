@@ -43,7 +43,8 @@ public class UserController {
 
     @Operation(summary = "用户注册", description = "新用户注册，创建账号")
     @PostMapping("/register")
-    public ResponseEntity<com.example.myapp.common.ApiResponse<Map<String, Object>>> register(@RequestBody UserRegisterRequest request) {
+    public ResponseEntity<com.example.myapp.common.ApiResponse<Map<String, Object>>> register(
+            @RequestBody UserRegisterRequest request) {
         try {
             User user = new User();
             user.setUsername(request.getUsername());
@@ -51,10 +52,10 @@ public class UserController {
             user.setPassword(request.getPassword());
             user.setEmail(request.getEmail());
             user.setAvatarUrl(request.getAvatarUrl());
-            
+
             UserDTO createdUser = userService.createUser(user);
-            return ResponseEntity.ok(com.example.myapp.common.ApiResponse.success("注册成功", 
-                Map.of("user_id", createdUser.getId())));
+            return ResponseEntity.ok(com.example.myapp.common.ApiResponse.success("注册成功",
+                    Map.of("user_id", createdUser.getId())));
         } catch (RuntimeException e) {
             // 处理已知的业务异常
             return ResponseEntity.badRequest().body(com.example.myapp.common.ApiResponse.error(e.getMessage()));
@@ -66,10 +67,11 @@ public class UserController {
 
     @Operation(summary = "用户登录", description = "用户登录并获取认证令牌")
     @PostMapping("/login")
-    public ResponseEntity<com.example.myapp.common.ApiResponse<Map<String, Object>>> login(@RequestBody UserLoginRequest request) {
+    public ResponseEntity<com.example.myapp.common.ApiResponse<Map<String, Object>>> login(
+            @RequestBody UserLoginRequest request) {
         try {
             System.out.println("开始登录处理，用户名: " + request.getUsername());
-            
+
             // 1. 根据用户名查找用户
             User user = userMapper.findByUsername(request.getUsername());
             if (user == null) {
@@ -87,11 +89,11 @@ public class UserController {
                 return ResponseEntity.badRequest().body(com.example.myapp.common.ApiResponse.error("用户名或密码错误"));
             }
             System.out.println("密码验证成功");
-            
+
             // 3. 生成token
             String token = jwtUtil.generateToken(user.getId(), user.getUsername());
             System.out.println("生成的token: " + token);
-            
+
             // 4. 更新最后活动时间
             user.setLastActiveAt(LocalDateTime.now());
             int updateResult = userMapper.update(user);
@@ -118,7 +120,8 @@ public class UserController {
         } catch (Exception e) {
             System.out.println("登录过程中发生异常:");
             e.printStackTrace();
-            return ResponseEntity.badRequest().body(com.example.myapp.common.ApiResponse.error("登录失败: " + e.getMessage()));
+            return ResponseEntity.badRequest()
+                    .body(com.example.myapp.common.ApiResponse.error("登录失败: " + e.getMessage()));
         }
     }
 
@@ -224,11 +227,11 @@ public class UserController {
         try {
             User user = userMapper.findById(id);
             if (user == null || user.getAvatarUrl() == null) {
-                return ResponseEntity.ok(com.example.myapp.common.ApiResponse.success("获取成功", 
-                    Map.of("avatar_url", "https://example.com/avatars/default.png")));
+                return ResponseEntity.ok(com.example.myapp.common.ApiResponse.success("获取成功",
+                        Map.of("avatar_url", "https://example.com/avatars/default.png")));
             }
-            return ResponseEntity.ok(com.example.myapp.common.ApiResponse.success("获取成功", 
-                Map.of("avatar_url", user.getAvatarUrl())));
+            return ResponseEntity.ok(com.example.myapp.common.ApiResponse.success("获取成功",
+                    Map.of("avatar_url", user.getAvatarUrl())));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(com.example.myapp.common.ApiResponse.error("获取头像失败"));
         }
@@ -265,23 +268,24 @@ public class UserController {
             }
 
             String avatarUrl = "/uploads/avatars/" + fileName;
-            
+
             // 获取现有用户信息
             User existingUser = userMapper.findById(id);
             if (existingUser == null) {
                 return ResponseEntity.badRequest().body(com.example.myapp.common.ApiResponse.error("用户不存在"));
             }
-            
+
             // 只更新头像URL
             existingUser.setAvatarUrl(avatarUrl);
             userService.updateUser(existingUser);
 
-            return ResponseEntity.ok(com.example.myapp.common.ApiResponse.success("头像更新成功", 
-                Map.of("avatar_url", avatarUrl)));
+            return ResponseEntity.ok(com.example.myapp.common.ApiResponse.success("头像更新成功",
+                    Map.of("avatar_url", avatarUrl)));
         } catch (Exception e) {
             System.out.println("更新头像时发生错误: " + e.getMessage());
             e.printStackTrace();
-            return ResponseEntity.status(500).body(com.example.myapp.common.ApiResponse.error("头像更新失败: " + e.getMessage()));
+            return ResponseEntity.status(500)
+                    .body(com.example.myapp.common.ApiResponse.error("头像更新失败: " + e.getMessage()));
         }
     }
 
@@ -294,7 +298,8 @@ public class UserController {
     }
 
     private String getFileExtension(String fileName) {
-        if (fileName == null) return ".jpg";
+        if (fileName == null)
+            return ".jpg";
         String extension = fileName.substring(fileName.lastIndexOf(".")).toLowerCase();
         // 只允许特定的图片格式
         if (!Arrays.asList(".jpg", ".jpeg", ".png", ".gif").contains(extension)) {
@@ -302,4 +307,4 @@ public class UserController {
         }
         return extension;
     }
-} 
+}
