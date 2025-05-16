@@ -15,27 +15,30 @@ public class WebConfig implements WebMvcConfigurer {
                 this.authInterceptor = authInterceptor;
         }
 
-        @Override
-        public void addCorsMappings(@NonNull CorsRegistry registry) {
-                registry.addMapping("/**")
-                                .allowedOrigins(
-                                                // 本地开发环境
-                                                "http://localhost:3000",
-                                                "http://localhost:5173",
-                                                "http://127.0.0.1:5173",
-                                                "http://127.0.0.1:3000",
-                                                // Railway云端环境 - 根据实际域名修改
-                                                "https://eventgraphtotext-frontend.up.railway.app",
-                                                "https://eventgraphtotext-frontend.railway.app",
-                                                "https://eventgraphtotext-frontend-production.up.railway.app",
-                                                // 添加"*"可以允许所有域名访问，但在生产环境中可能不够安全
-                                                "*")
-                                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-                                .allowedHeaders("*")
-                                .exposedHeaders("Content-Disposition", "Content-Type", "Content-Length")
-                                .allowCredentials(true)
-                                .maxAge(3600); // 1小时预检请求缓存
-        }
+        // 注释掉原有的CORS配置，使用SecurityConfig中的配置
+        /*
+         * @Override
+         * public void addCorsMappings(@NonNull CorsRegistry registry) {
+         * registry.addMapping("/**")
+         * .allowedOrigins(
+         * // 本地开发环境
+         * "http://localhost:3000",
+         * "http://localhost:5173",
+         * "http://127.0.0.1:5173",
+         * "http://127.0.0.1:3000",
+         * // Railway云端环境 - 根据实际域名修改
+         * "https://eventgraphtotext-frontend.up.railway.app",
+         * "https://eventgraphtotext-frontend.railway.app",
+         * "https://eventgraphtotext-frontend-production.up.railway.app",
+         * // 添加"*"可以允许所有域名访问，但在生产环境中可能不够安全
+         * "*")
+         * .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+         * .allowedHeaders("*")
+         * .exposedHeaders("Content-Disposition", "Content-Type", "Content-Length")
+         * .allowCredentials(true)
+         * .maxAge(3600); // 1小时预检请求缓存
+         * }
+         */
 
         @Override
         public void addInterceptors(@NonNull InterceptorRegistry registry) {
