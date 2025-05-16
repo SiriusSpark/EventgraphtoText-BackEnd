@@ -34,9 +34,9 @@ jobs:
     - name: List target directory
       run: ls -la target/
       
-    # 上传构建产物
+    # 上传构建产物 - 使用v2版本替代v3
     - name: Upload JAR
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v2
       with:
         name: app
         path: target/*.jar
