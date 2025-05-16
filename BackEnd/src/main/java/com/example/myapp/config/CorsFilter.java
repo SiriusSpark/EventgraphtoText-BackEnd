@@ -11,9 +11,10 @@ import java.io.IOException;
 
 /**
  * 全局CORS过滤器，确保所有请求都允许跨域访问
+ * 已被SimpleCorsConfig和MyAppApplication中的配置替代
  */
-@Component
-@Order(Ordered.HIGHEST_PRECEDENCE)
+// @Component // 注释掉@Component使这个过滤器失效
+// @Order(Ordered.HIGHEST_PRECEDENCE)
 public class CorsFilter implements Filter {
 
     @Override
