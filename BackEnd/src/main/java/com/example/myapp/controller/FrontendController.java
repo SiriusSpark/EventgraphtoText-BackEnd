@@ -11,11 +11,20 @@ import org.springframework.web.bind.annotation.GetMapping;
 public class FrontendController {
 
     /**
-     * 处理所有未被其他控制器处理的GET请求，返回前端应用的index.html
+     * 处理所有未被其他控制器处理的GET请求，返回前端应用的主页
      * 
      * @return 前端应用的主页
      */
-    @GetMapping(value = { "/**/{path:[^\\.]*}", "/{path:(?!api|uploads).*}" })
+    @GetMapping(value = {
+            "/",
+            "/login",
+            "/register",
+            "/home",
+            "/event-graph/**",
+            "/text-generation/**",
+            "/text-style/**",
+            "/user/**"
+    })
     public String forward() {
         return "forward:/index.html";
     }
